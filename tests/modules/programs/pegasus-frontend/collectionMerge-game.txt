@@ -1,0 +1,15 @@
+game: game a
+file: a
+
+
+game: game b
+file: b
+
+
+game: game c
+file: c
+
+
+game: game ad
+file: a
+file: d

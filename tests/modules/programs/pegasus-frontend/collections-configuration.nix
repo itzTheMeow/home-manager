@@ -9,6 +9,7 @@ let
     ];
 in
 {
+  # some examples from the website, adapted for the library
   config = {
     programs.pegasus-frontend = {
       enable = true;
