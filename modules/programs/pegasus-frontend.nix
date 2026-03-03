@@ -178,6 +178,8 @@ let
     '';
 in
 {
+  meta.maintainers = [ lib.maintainers.xelacodes ];
+
   options.programs.pegasus-frontend = {
     enable = lib.mkEnableOption "pegasus-frontend";
     package = lib.mkPackageOption pkgs "pegasus-frontend" { };
