@@ -118,6 +118,9 @@ let
           }
           // lib.optionalAttrs (game.workdir != null) {
             workdir = game.workdir;
+          }
+          // lib.optionalAttrs (game.assets != null) {
+            assets = game.assets;
           };
       in
       ''
@@ -378,6 +381,7 @@ in
             };
             collections = mkOption {
               type = types.listOf types.str;
+              default = [ ];
               description = ''
                 List of collection names this game belongs to.
                 Must have at least one entry to appear in the UI.
@@ -456,6 +460,14 @@ in
               type = types.nullOr types.str;
               default = null;
               description = "The working directory in which the game is launched. Defaults to the directory of the launched program.";
+            };
+            assets = mkOption {
+              type = types.nullOr (types.attrsOf types.str);
+              default = null;
+              description = ''
+                File paths to asset files for the game.
+                For a list of valid options, see https://pegasus-frontend.org/docs/themes/api/#assets
+              '';
             };
           };
         }
