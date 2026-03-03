@@ -493,6 +493,15 @@ in
       );
     in
     mkIf cfg.enable {
+      warnings = lib.concatLists [
+        (lib.optional (
+          cfg.collections != { } && cfg.games == [ ]
+        ) "pegasus-frontend: collections are defined but games are not - games won't appear in the UI")
+        (lib.optional (
+          cfg.games != [ ] && cfg.collections == { }
+        ) "pegasus-frontend: games are defined but collections are not - games won't appear in the UI")
+      ];
+
       home.packages = [ cfg.package ];
       xdg.configFile = {
         "pegasus-frontend/settings.txt".text = mkConfigString {
