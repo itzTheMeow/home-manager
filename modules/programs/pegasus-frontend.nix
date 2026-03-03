@@ -84,7 +84,7 @@ let
             "sort-by" = game.sortBy;
           }
           // lib.optionalAttrs (game.files != null && game.files != [ ]) {
-            file = game.files;
+            file = map (v: "${v}") game.files;
           }
           // lib.optionalAttrs (game.developers != null && game.developers != [ ]) {
             developer = game.developers;
@@ -120,7 +120,12 @@ let
             workdir = game.workdir;
           }
           // lib.optionalAttrs (game.assets != null) {
-            assets = game.assets;
+            assets = lib.mapAttrs (_: v: # convert derivation paths to strings
+              if lib.isList v then
+                map (item: "${item}") v
+              else
+                "${v}"
+            ) game.assets;
           };
       in
       ''
@@ -144,7 +149,7 @@ let
           extensions = lib.concatStringsSep ", " opts.extensions;
         }
         // lib.optionalAttrs (opts.files != null) {
-          file = opts.files;
+          file = map (v: "${v}") opts.files;
         }
         // lib.optionalAttrs (opts.regex != null) {
           regex = opts.regex;
@@ -313,7 +318,10 @@ in
               description = "A list of file extensions (without the . dot). All files with these extensions (including those in subdirectories) will be included.";
             };
             files = mkOption {
-              type = types.nullOr (types.listOf types.str);
+              type = types.nullOr (types.listOf (types.oneOf [
+                types.str
+                types.package
+              ]));
               default = null;
               description = "A single file or a list of files to add to the collection. You can use either absolute paths or paths relative to the metadata file.";
             };
@@ -400,7 +408,10 @@ in
               description = "An alternate title that should be used for sorting.";
             };
             files = mkOption {
-              type = types.listOf types.str;
+              type = types.listOf (types.oneOf [
+                types.str
+                types.package
+              ]);
               description = "The file path(s) that belong to this game.";
             };
 
@@ -462,7 +473,14 @@ in
               description = "The working directory in which the game is launched. Defaults to the directory of the launched program.";
             };
             assets = mkOption {
-              type = types.nullOr (types.attrsOf types.str);
+              type = types.nullOr (types.attrsOf (types.oneOf [
+                types.str
+                types.package
+                (types.listOf (types.oneOf [
+                  types.str
+                  types.package
+                ]))
+              ]));
               default = null;
               description = ''
                 File paths to asset files for the game.

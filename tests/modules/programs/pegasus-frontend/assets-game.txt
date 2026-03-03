@@ -1,4 +1,5 @@
 game: My Game
 assets.boxFront: /nix/store/00000000000000000000000000000000-boxfront.png
 assets.logo: ./logo.png
+assets.logo: ./other-logo.png
 file: /nix/store/00000000000000000000000000000000-mygame.txt

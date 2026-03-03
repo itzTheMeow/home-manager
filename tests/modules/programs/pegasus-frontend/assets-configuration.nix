@@ -13,7 +13,10 @@
           ];
           assets = {
             boxFront = builtins.toFile "boxfront.png" "";
-            logo = "./logo.png";
+            logo = [
+              "./logo.png"
+              "./other-logo.png"
+            ];
           };
         }
       ];
