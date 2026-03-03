@@ -75,7 +75,7 @@ let
   # generates a single metadata file containing all games
   mkGamesConfig =
     games:
-    lib.concatMapStringsSep "\n" (
+    lib.concatMapStringsSep "\n\n" (
       game:
       let
         gameAttrs =
@@ -122,8 +122,7 @@ let
       in
       ''
         game: ${game.title}
-        ${mkConfigString gameAttrs}
-      ''
+        ${mkConfigString gameAttrs}''
     ) games;
 
   # generates a config file for a collection definition
@@ -142,7 +141,7 @@ let
           extensions = lib.concatStringsSep ", " opts.extensions;
         }
         // lib.optionalAttrs (opts.files != null) {
-          files = opts.files;
+          file = opts.files;
         }
         // lib.optionalAttrs (opts.regex != null) {
           regex = opts.regex;
@@ -154,7 +153,7 @@ let
           "ignore-extensions" = lib.concatStringsSep ", " opts.ignoreExtensions;
         }
         // lib.optionalAttrs (opts.ignoreFiles != null) {
-          "ignore-files" = opts.ignoreFiles;
+          "ignore-file" = opts.ignoreFiles;
         }
         // lib.optionalAttrs (opts.ignoreRegex != null) {
           "ignore-regex" = opts.ignoreRegex;
@@ -174,8 +173,7 @@ let
     in
     ''
       collection: ${name}
-      ${mkConfigString configAttrs}
-    '';
+      ${mkConfigString configAttrs}'';
 in
 {
   meta.maintainers = [ lib.maintainers.xelacodes ];

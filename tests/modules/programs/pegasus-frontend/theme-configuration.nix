@@ -20,7 +20,7 @@
       assertFileContent $cfg/settings.txt ${./theme-settings.txt}
 
       assertFileExists $cfg/theme_settings/my_theme.json
-      assertFileContent $cfg/theme_settings/my_theme.json ${./theme-theme_settings.json}
+      assertFileContent $cfg/theme_settings/my_theme.json ${builtins.toFile "settings.json" ''{"key":"value"}''}
 
       assertDirectoryExists $cfg/themes/my_theme/theme_test_directory
     '';
