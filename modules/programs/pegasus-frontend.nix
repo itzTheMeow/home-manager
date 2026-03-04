@@ -13,6 +13,7 @@ let
     ;
   cfg = config.programs.pegasus-frontend;
 
+  # providers available for use in pegasus
   validProviders = [
     "pegasus_media"
     "steam"
@@ -21,6 +22,13 @@ let
     "logiqx"
     "lutris"
     "skraper"
+  ];
+
+  # utility type for any string-coercable path
+  typeAnyFile = types.oneOf [
+    types.str
+    types.package
+    types.path
   ];
 
   # flatten nested attr sets with dot notation and convert to `key.key.key: value` strings
@@ -316,14 +324,7 @@ in
               description = "A list of file extensions (without the . dot). All files with these extensions (including those in subdirectories) will be included.";
             };
             files = mkOption {
-              type = types.nullOr (
-                types.listOf (
-                  types.oneOf [
-                    types.str
-                    types.package
-                  ]
-                )
-              );
+              type = types.nullOr (types.listOf typeAnyFile);
               default = null;
               description = "A single file or a list of files to add to the collection. You can use either absolute paths or paths relative to the metadata file.";
             };
@@ -410,12 +411,7 @@ in
               description = "An alternate title that should be used for sorting.";
             };
             files = mkOption {
-              type = types.listOf (
-                types.oneOf [
-                  types.str
-                  types.package
-                ]
-              );
+              type = types.listOf typeAnyFile;
               description = "The file path(s) that belong to this game.";
             };
 
@@ -480,14 +476,8 @@ in
               type = types.nullOr (
                 types.attrsOf (
                   types.oneOf [
-                    types.str
-                    types.package
-                    (types.listOf (
-                      types.oneOf [
-                        types.str
-                        types.package
-                      ]
-                    ))
+                    typeAnyFile
+                    (types.listOf typeAnyFile)
                   ]
                 )
               );

@@ -17,6 +17,7 @@
               "./logo.png"
               "./other-logo.png"
             ];
+            tile = ./assets-tile.txt;
           };
         }
       ];
