@@ -22,7 +22,9 @@ in
             "b" # this should get merged with "c"
           ];
         };
-        "collection d" = { };
+        "collection d" = {
+          extraConfig.not_a_setting = "testing";
+        };
       };
       games = [
         {
@@ -42,6 +44,10 @@ in
           title = "game c";
           collections = [ "collection bc" ];
           files = [ "c" ];
+          extraConfig.multi-key = [
+            "v1"
+            "v2"
+          ];
         }
         {
           title = "game ad";

@@ -138,7 +138,8 @@ let
               _: v: # convert derivation paths to strings
               if lib.isList v then map (item: "${item}") v else "${v}"
             ) game.assets;
-          };
+          }
+          // game.extraConfig;
       in
       ''
         game: ${game.title}
@@ -189,7 +190,8 @@ let
         }
         // lib.optionalAttrs (opts.description != null) {
           description = opts.description;
-        };
+        }
+        // opts.extraConfig;
     in
     ''
       collection: ${name}
@@ -228,7 +230,7 @@ in
           extraConfig = mkOption {
             type = types.attrsOf typeConfigValue;
             default = { };
-            description = "Additional configuration values to be merged into the settings. Allows specifying arbitrary config options not covered by the above options. Valid values are strings, lists of strings, or nested attribute sets.";
+            description = "Additional configuration values to be merged into the settings file.";
           };
         };
       };
@@ -391,6 +393,11 @@ in
               default = null;
               description = "A possibly longer description of the collection.";
             };
+            extraConfig = mkOption {
+              type = types.attrsOf typeConfigValue;
+              default = { };
+              description = "Additional configuration values to be merged into the collection.";
+            };
           };
         }
       );
@@ -502,6 +509,11 @@ in
                 File paths to asset files for the game.
                 For a list of valid options, see https://pegasus-frontend.org/docs/themes/api/#assets
               '';
+            };
+            extraConfig = mkOption {
+              type = types.attrsOf typeConfigValue;
+              default = { };
+              description = "Additional configuration values to be merged into the game.";
             };
           };
         }
