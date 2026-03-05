@@ -199,12 +199,12 @@ in
     settings = mkOption {
       type = types.submodule {
         options = {
-          verify-files = mkOption {
+          verifyFiles = mkOption {
             type = types.bool;
             default = true;
             description = "Whether to verify game files on startup";
           };
-          input-mouse-support = mkOption {
+          mouseSupport = mkOption {
             type = types.bool;
             default = true;
             description = "Enable mouse input support";
@@ -542,8 +542,8 @@ in
         "pegasus-frontend/settings.txt".text = mkConfigString {
           general = {
             theme = if theme == null then ":/themes/pegasus-theme-grid/" else "themes/${theme.name}/";
-            verify-files = boolToString settings.verify-files;
-            input-mouse-support = boolToString settings.input-mouse-support;
+            verify-files = boolToString settings.verifyFiles;
+            input-mouse-support = boolToString settings.mouseSupport;
             fullscreen = boolToString settings.fullscreen;
             show-missing-games = boolToString settings.showMissingGames;
           };
