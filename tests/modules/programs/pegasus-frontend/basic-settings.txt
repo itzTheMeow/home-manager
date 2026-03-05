@@ -1,5 +1,6 @@
 general.fullscreen: true
 general.input-mouse-support: true
+general.show-missing-games: false
 general.theme: :/themes/pegasus-theme-grid/
 general.verify-files: true
 keys.accept: Return,Enter,GamepadA

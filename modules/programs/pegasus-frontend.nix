@@ -24,11 +24,17 @@ let
     "skraper"
   ];
 
-  # utility type for any string-coercable path
+  # any string-coercable path
   typeAnyFile = types.oneOf [
     types.str
     types.package
     types.path
+  ];
+  # values that are valid in the config file formatter
+  typeConfigValue = types.oneOf [
+    types.str
+    (types.listOf types.str)
+    (types.attrsOf typeConfigValue)
   ];
 
   # flatten nested attr sets with dot notation and convert to `key.key.key: value` strings
@@ -77,7 +83,7 @@ let
       mkKeyValue =
         k: v:
         "${k}: ${if lib.isString v && lib.strings.hasInfix "\n" v then "\n${processFlowingText v}" else v}";
-      listsAsDuplicateKeys = true; # arrays will be converted to duplicate keys, which the format supports
+      listsAsDuplicateKeys = true; # lists will be converted to duplicate keys, which the format supports
     } (builtins.listToAttrs (flatten "" data));
 
   # generates a single metadata file containing all games
@@ -218,6 +224,11 @@ in
             type = types.bool;
             default = false;
             description = "Show all detected games, including those that may not exist";
+          };
+          extraConfig = mkOption {
+            type = types.attrsOf typeConfigValue;
+            default = { };
+            description = "Additional configuration values to be merged into the settings. Allows specifying arbitrary config options not covered by the above options. Valid values are strings, lists of strings, or nested attribute sets.";
           };
         };
       };
@@ -539,22 +550,25 @@ in
 
       home.packages = [ cfg.package ];
       xdg.configFile = {
-        "pegasus-frontend/settings.txt".text = mkConfigString {
-          general = {
-            theme = if theme == null then ":/themes/pegasus-theme-grid/" else "themes/${theme.name}/";
-            verify-files = boolToString settings.verifyFiles;
-            input-mouse-support = boolToString settings.mouseSupport;
-            fullscreen = boolToString settings.fullscreen;
-            show-missing-games = boolToString settings.showMissingGames;
-          };
-          providers = lib.listToAttrs (
-            map (provider: {
-              name = "${provider}.enabled";
-              value = boolToString (lib.elem provider cfg.enableProviders);
-            }) validProviders
-          );
-          keys = cfg.keybinds;
-        };
+        "pegasus-frontend/settings.txt".text = mkConfigString (
+          {
+            general = {
+              theme = if theme == null then ":/themes/pegasus-theme-grid/" else "themes/${theme.name}/";
+              verify-files = boolToString settings.verifyFiles;
+              input-mouse-support = boolToString settings.mouseSupport;
+              fullscreen = boolToString settings.fullscreen;
+              show-missing-games = boolToString settings.showMissingGames;
+            };
+            providers = lib.listToAttrs (
+              map (provider: {
+                name = "${provider}.enabled";
+                value = boolToString (lib.elem provider cfg.enableProviders);
+              }) validProviders
+            );
+            keys = cfg.keybinds;
+          }
+          // settings.extraConfig
+        );
         "pegasus-frontend/game_dirs.txt".text = lib.concatStringsSep "\n" (
           cfg.gameDirs
           # add the collections and games metadata if set

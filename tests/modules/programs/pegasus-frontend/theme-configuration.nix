@@ -11,6 +11,8 @@
           key = "value";
         };
       };
+      # also test extraConfig for settings
+      settings.extraConfig.extra_config_value.item = "test";
     };
 
     nmt.script = ''
