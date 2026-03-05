@@ -214,6 +214,11 @@ in
             default = true;
             description = "Start in fullscreen mode";
           };
+          showMissingGames = mkOption {
+            type = types.bool;
+            default = false;
+            description = "Show all detected games, including those that may not exist";
+          };
         };
       };
       default = { };
@@ -540,6 +545,7 @@ in
             verify-files = boolToString settings.verify-files;
             input-mouse-support = boolToString settings.input-mouse-support;
             fullscreen = boolToString settings.fullscreen;
+            show-missing-games = boolToString settings.showMissingGames;
           };
           providers = lib.listToAttrs (
             map (provider: {
