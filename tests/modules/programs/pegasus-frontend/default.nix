@@ -1,4 +1,5 @@
-{
+{ lib, pkgs, ... }:
+lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
   pegasus-frontend-assets-configuration = ./assets-configuration.nix;
   pegasus-frontend-basic-configuration = ./basic-configuration.nix;
   pegasus-frontend-collections-configuration = ./collections-configuration.nix;

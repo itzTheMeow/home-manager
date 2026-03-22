@@ -31,11 +31,11 @@ let
     types.path
   ];
   # values that are valid in the config file formatter
-  typeConfigValue = types.oneOf [
+  typeConfigValue = types.addCheck (types.oneOf [
     types.str
     (types.listOf types.str)
-    (types.attrsOf typeConfigValue)
-  ];
+    (types.attrsOf types.anything) # can only be a nested typeConfigValue
+  ]) (v: if lib.isAttrs v then lib.all (val: typeConfigValue.check val) (lib.attrValues v) else true);
 
   # flatten nested attr sets with dot notation and convert to `key.key.key: value` strings
   mkConfigString =
@@ -198,7 +198,7 @@ let
       ${mkConfigString configAttrs}'';
 in
 {
-  meta.maintainers = [ lib.maintainers.xelacodes ];
+  meta.maintainers = [ lib.hm.maintainers.xelacodes ];
 
   options.programs.pegasus-frontend = {
     enable = lib.mkEnableOption "pegasus-frontend";
