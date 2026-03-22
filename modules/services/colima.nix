@@ -57,7 +57,7 @@ in
       extraDescription = "Used in various ways by colima.";
     };
     curlPackage = lib.mkPackageOption pkgs "curl" {
-      extraDescription = "Used by colima to donwload images.";
+      extraDescription = "Used by colima to download images.";
     };
     bashPackage = lib.mkPackageOption pkgs "bashNonInteractive" {
       extraDescription = "Used by colima's internal scripts.";
@@ -271,8 +271,8 @@ in
               "start"
               name
               "-f"
-              "--activate=${if profile.isActive then "true" else "false"}"
-              "--save-config=false"
+              "--activate=${lib.boolToString profile.isActive}"
+              "--save-config=${lib.boolToString (profile.settings == { })}"
             ];
             KeepAlive = {
               SuccessfulExit = true;
@@ -319,8 +319,8 @@ in
             ExecStart = ''
               ${lib.getExe cfg.package} start ${name} \
                 -f \
-                --activate=${if profile.isActive then "true" else "false"} \
-                --save-config=false
+                --activate=${lib.boolToString profile.isActive} \
+                --save-config=${lib.boolToString (profile.settings == { })}
             '';
             Restart = "always";
             RestartSec = 2;

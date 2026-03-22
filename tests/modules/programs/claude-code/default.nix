@@ -1,7 +1,9 @@
 {
   claude-code-basic = ./basic.nix;
   claude-code-full-config = ./full-config.nix;
+  claude-code-lsp = ./lsp.nix;
   claude-code-mcp = ./mcp.nix;
+  claude-code-mcp-lsp = ./mcp-lsp.nix;
   claude-code-mcp-integration = ./mcp-integration.nix;
   claude-code-assertion = ./assertion.nix;
   claude-code-memory-management = ./memory-management.nix;

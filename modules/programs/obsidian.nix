@@ -205,11 +205,17 @@ let
   extraFilesSettingsType = with types; nullOr (attrsOf (submodule extraFilesOptions));
 in
 {
-  meta.maintainers = [ lib.hm.maintainers.karaolidis ];
+  meta.maintainers = [ lib.maintainers.karaolidis ];
 
   options.programs.obsidian = {
     enable = mkEnableOption "obsidian";
     package = mkPackageOption pkgs "obsidian" { nullable = true; };
+
+    cli.enable = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Whether to enable the Obsidian CLI in `obsidian.json`.";
+    };
 
     defaultSettings = {
       app = mkOption {
@@ -553,6 +559,12 @@ in
 
         activation.obsidian =
           let
+            obsidianConfigDir =
+              if pkgs.stdenv.isDarwin then
+                "${config.home.homeDirectory}/Library/Application Support/obsidian"
+              else
+                "${config.xdg.configHome}/obsidian";
+
             template = (pkgs.formats.json { }).generate "obsidian.json" {
               vaults = builtins.listToAttrs (
                 map (vault: {
@@ -563,10 +575,11 @@ in
                 }) vaults
               );
               updateDisabled = true;
+              cli = cfg.cli.enable;
             };
           in
           lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-            OBSIDIAN_CONFIG="$HOME/.config/obsidian/obsidian.json"
+            OBSIDIAN_CONFIG="${obsidianConfigDir}/obsidian.json"
             if [ -f "$OBSIDIAN_CONFIG" ]; then
               verboseEcho "Merging existing Obsidian config with generated template"
               tmp="$(mktemp)"
