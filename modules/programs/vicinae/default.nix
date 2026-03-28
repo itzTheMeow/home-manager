@@ -6,6 +6,7 @@
 }:
 let
   cfg = config.programs.vicinae;
+  vicinaeLib = import ./lib.nix { inherit lib pkgs; };
 
   jsonFormat = pkgs.formats.json { };
   tomlFormat = pkgs.formats.toml { };
@@ -77,6 +78,10 @@ in
             name = "gif-search";
             sha256 = "sha256-G7il8T1L+P/2mXWJsb68n4BCbVKcrrtK8GnBNxzt73Q=";
             rev = "4d417c2dfd86a5b2bea202d4a7b48d8eb3dbaeb1";
+          })
+          (config.lib.vicinae.mkRayCastExtension {
+            name = "my-local-raycast-extension";
+            src = ./extensions/my-local-raycast-extension;
           })
          ],
           ```
@@ -165,57 +170,8 @@ in
         message = "After version 0.17, if you want to explicitly disable the use of layer shell, you need to set {option}.programs.vicinae.settings.launcher_window.layer_shell.enabled = false.";
       }
     ];
-    lib.vicinae.mkExtension = (
-      {
-        name,
-        src,
-      }:
-      (pkgs.buildNpmPackage {
-        inherit name src;
-        installPhase = ''
-          runHook preInstall
 
-          mkdir -p $out
-          cp -r /build/.local/share/vicinae/extensions/${name}/* $out/
-
-          runHook postInstall
-        '';
-        npmDeps = pkgs.importNpmLock { npmRoot = src; };
-        npmConfigHook = pkgs.importNpmLock.npmConfigHook;
-      })
-    );
-
-    lib.vicinae.mkRayCastExtension = (
-      {
-        name,
-        sha256,
-        rev,
-      }:
-      let
-        src =
-          pkgs.fetchgit {
-            inherit rev sha256;
-            url = "https://github.com/raycast/extensions";
-            sparseCheckout = [
-              "/extensions/${name}"
-            ];
-          }
-          + "/extensions/${name}";
-      in
-      (pkgs.buildNpmPackage {
-        inherit name src;
-        installPhase = ''
-          runHook preInstall
-
-          mkdir -p $out
-          cp -r /build/.config/raycast/extensions/${name}/* $out/
-
-          runHook postInstall
-        '';
-        npmDeps = pkgs.importNpmLock { npmRoot = src; };
-        npmConfigHook = pkgs.importNpmLock.npmConfigHook;
-      })
-    );
+    lib.vicinae = vicinaeLib;
 
     home.packages = lib.mkIf (cfg.package != null) [ cfg.package ];
 
