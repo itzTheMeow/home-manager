@@ -4,9 +4,7 @@
   pkgs,
   ...
 }:
-
 let
-
   cfg = config.programs.rclone;
   iniFormat = pkgs.formats.ini { };
   replaceIllegalChars = builtins.replaceStrings [ "/" " " "$" ] [ "." "_" "" ];
@@ -15,19 +13,17 @@ let
   # options shared between mounts/serve
   mountServeOptions = {
     logLevel = lib.mkOption {
-      type = lib.types.nullOr (
-        lib.types.enum [
-          "ERROR"
-          "NOTICE"
-          "INFO"
-          "DEBUG"
-        ]
-      );
+      type = lib.types.enum [
+        null
+        "ERROR"
+        "NOTICE"
+        "INFO"
+        "DEBUG"
+      ];
       default = null;
       example = "INFO";
       description = ''
-        Set the log-level.
-        See: https://rclone.org/docs/#logging
+        Set the log level. See <https://rclone.org/docs/#logging> for more.
       '';
     };
     options = lib.mkOption {
@@ -57,6 +53,80 @@ let
       '';
     };
   };
+
+  # creates a sidecar user service. returns an attrset of systemd services
+  mkRcloneSidecars =
+    # type of the sidecar, either "mounts" or "serve" corresponding to options
+    sidecarType:
+    lib.listToAttrs (
+      lib.concatMap (
+        _remote: # remote name + remote config
+        let
+          remoteName = _remote.name;
+          remote = _remote.value;
+        in
+        lib.concatMap (
+          _sidecar: # sidecar path + sidecar config
+          let
+            # a sidecar is either a mount or a protocol-serve
+            sidecarPath = _sidecar.name;
+            sidecar = _sidecar.value;
+
+            # there are currently only 2 types mount/serve - this may need changed in the future
+            isMount = sidecarType == "mounts";
+            # name of the rclone command to use - also used in service name
+            cmdName = if isMount then "mount" else "serve";
+          in
+          lib.optional sidecar.enable (
+            lib.nameValuePair "rclone-${cmdName}:${replaceIllegalChars sidecarPath}@${remoteName}" {
+              Unit = {
+                Description = "Rclone ${
+                  if isMount then "FUSE daemon" else "protocol serving"
+                } for ${remoteName}:${sidecarPath}";
+                Requires = [ "rclone-config.service" ];
+                After = [ "rclone-config.service" ];
+              };
+
+              Service = {
+                Type = "notify";
+                Environment =
+                  # fusermount/fusermount3
+                  (lib.optional (sidecarType == "mounts") "PATH=/run/wrappers/bin")
+                  ++ lib.optional (sidecar.logLevel != null) "RCLONE_LOG_LEVEL=${sidecar.logLevel}";
+                # rclone exits with code 143 when stopped properly
+                SuccessExitStatus = "143";
+
+                ExecStartPre = lib.mkIf isMount "${pkgs.coreutils}/bin/mkdir -p ${lib.escapeShellArg sidecar.mountPoint}";
+                ExecStart = lib.concatStringsSep " " (
+                  [ "${lib.getExe cfg.package} ${cmdName}" ] # rclone [command]
+                  ++ (
+                    if isMount then
+                      # https://rclone.org/commands/rclone_mount/
+                      [
+                        (lib.cli.toCommandLineShellGNU { } sidecar.options) # [opts]
+                        (lib.escapeShellArg "${remoteName}:${sidecarPath}") # <remote>
+                        (lib.escapeShellArg sidecar.mountPoint) # <mountpoint>
+                      ]
+                    else
+                      # https://rclone.org/commands/rclone_serve/
+                      [
+                        (lib.escapeShellArg sidecar.protocol) # <protocol>
+                        (lib.cli.toCommandLineShellGNU { } sidecar.options) # [opts]
+                        (lib.escapeShellArg "${remoteName}:${sidecarPath}") # <remote>
+                      ]
+                  )
+                );
+                Restart = "on-failure";
+              };
+
+              Install.WantedBy = lib.optional (
+                if isMount then sidecar.autoMount else sidecar.autoStart
+              ) "default.target";
+            }
+          )
+        ) (lib.attrsToList (remote.${sidecarType} or { }))
+      ) (lib.attrsToList cfg.remotes)
+    );
 
 in
 {
@@ -159,7 +229,7 @@ in
                       options = {
                         enable = lib.mkEnableOption "this mount";
 
-                        autoMount = lib.mkEnableOption "automatic mounting" // {
+                        autoMount = lib.mkEnableOption "automatically mounting the remote on login" // {
                           default = true;
                         };
 
@@ -224,13 +294,13 @@ in
                             "webdav"
                           ];
                           description = ''
-                            The protocol to serve this path using.
-                            See: https://rclone.org/commands/rclone_serve
+                            The protocol to use when serving this path.
+                            See <https://rclone.org/commands/rclone_serve> for more.
                           '';
                           example = "http";
                         };
 
-                        autoServe = lib.mkEnableOption "automatic serving" // {
+                        autoStart = lib.mkEnableOption "automatically serving the remote on login" // {
                           default = true;
                         };
                       }
@@ -409,116 +479,13 @@ in
             Install.WantedBy = [ "default.target" ];
           };
         };
-
-      mountServices = lib.listToAttrs (
-        lib.concatMap
-          (
-            { name, value }:
-            let
-              remote-name = name;
-              remote = value;
-            in
-            lib.concatMap (
-              { name, value }:
-              let
-                mount-path = name;
-                mount = value;
-              in
-              lib.optional mount.enable (
-                lib.nameValuePair "rclone-mount:${replaceIllegalChars mount-path}@${remote-name}" {
-                  Unit = {
-                    Description = "Rclone FUSE daemon for ${remote-name}:${mount-path}";
-                    Requires = [ "rclone-config.service" ];
-                    After = [ "rclone-config.service" ];
-                  };
-
-                  Service = {
-                    Type = "notify";
-                    Environment = [
-                      # fusermount/fusermount3
-                      "PATH=/run/wrappers/bin"
-                    ]
-                    ++ lib.optional (mount.logLevel != null) "RCLONE_LOG_LEVEL=${mount.logLevel}";
-
-                    ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p ${lib.escapeShellArg mount.mountPoint}";
-                    ExecStart = lib.concatStringsSep " " [
-                      (lib.getExe cfg.package)
-                      "mount"
-                      (lib.cli.toCommandLineShellGNU { } mount.options)
-                      (lib.escapeShellArg "${remote-name}:${mount-path}")
-                      (lib.escapeShellArg mount.mountPoint)
-                    ];
-                    Restart = "on-failure";
-                  };
-
-                  Install.WantedBy = lib.optional mount.autoMount "default.target";
-                }
-              )
-            ) (lib.attrsToList remote.mounts)
-          )
-          (
-            lib.pipe cfg.remotes [
-              lib.attrsToList
-              (lib.filter (rem: rem.value ? mounts))
-            ]
-          )
-      );
-
-      serveServices = lib.listToAttrs (
-        lib.concatMap
-          (
-            { name, value }:
-            let
-              remote-name = name;
-              remote = value;
-            in
-            lib.concatMap (
-              { name, value }:
-              let
-                serve-path = name;
-                serve = value;
-              in
-              lib.optional serve.enable (
-                lib.nameValuePair "rclone-serve:${replaceIllegalChars serve-path}@${remote-name}" {
-                  Unit = {
-                    Description = "Rclone protocol serving for ${remote-name}:${serve-path}";
-                    Requires = [ "rclone-config.service" ];
-                    After = [ "rclone-config.service" ];
-                  };
-
-                  Service = {
-                    Type = "notify";
-                    Environment = lib.optional (serve.logLevel != null) "RCLONE_LOG_LEVEL=${serve.logLevel}";
-
-                    ExecStart = lib.concatStringsSep " " [
-                      (lib.getExe cfg.package)
-                      "serve"
-                      (lib.escapeShellArg serve.protocol)
-                      (lib.cli.toCommandLineShellGNU { } serve.options)
-                      (lib.escapeShellArg "${remote-name}:${serve-path}")
-                    ];
-                    Restart = "on-failure";
-                  };
-
-                  Install.WantedBy = lib.optional serve.autoServe "default.target";
-                }
-              )
-            ) (lib.attrsToList remote.serve)
-          )
-          (
-            lib.pipe cfg.remotes [
-              lib.attrsToList
-              (lib.filter (rem: rem.value ? serve))
-            ]
-          )
-      );
     in
     lib.mkIf cfg.enable {
       home.packages = [ cfg.package ];
       systemd.user.services = lib.mkMerge [
         rcloneConfigService
-        mountServices
-        serveServices
+        (mkRcloneSidecars "mounts")
+        (mkRcloneSidecars "serve")
       ];
     };
 }
