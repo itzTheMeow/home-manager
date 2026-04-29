@@ -57,7 +57,7 @@ in
       extraDescription = "Used in various ways by colima.";
     };
     curlPackage = lib.mkPackageOption pkgs "curl" {
-      extraDescription = "Used by colima to donwload images.";
+      extraDescription = "Used by colima to download images.";
     };
     bashPackage = lib.mkPackageOption pkgs "bashNonInteractive" {
       extraDescription = "Used by colima's internal scripts.";
@@ -245,7 +245,7 @@ in
             "${cfg.colimaHomeDir}/${profileName}/colima.yaml" = {
               source = yamlFormat.generate "colima.yaml" profile.settings;
             };
-          }) (lib.filterAttrs (name: profile: profile.settings != { }) cfg.profiles)
+          }) (lib.filterAttrs (_name: profile: profile.settings != { }) cfg.profiles)
         );
 
         sessionVariables = {

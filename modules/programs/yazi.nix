@@ -48,23 +48,22 @@ in
 
     shellWrapperName = lib.mkOption {
       type = types.str;
-      default =
-        if lib.versionAtLeast config.home.stateVersion "26.05" then
-          "y"
-        else
-          lib.warn ''
-            The default value of `programs.yazi.shellWrapperName` has changed from `yy` to `y`.
-            You are currently using the legacy default (`yy`) because `home.stateVersion` is less than "26.05".
-            To silence this warning and keep legacy behavior, set:
-              programs.yazi.shellWrapperName = "yy";
-            To adopt the new default behavior, set:
-              programs.yazi.shellWrapperName = "y";
-          '' "yy";
-      defaultText = literalExpression ''
-        "y"  for state version ≥ 26.05
-        "yy" for state version < 26.05
-      '';
       example = "yy";
+      inherit
+        (lib.hm.deprecations.mkStateVersionOptionDefault {
+          inherit (config.home) stateVersion;
+          since = "26.05";
+          optionPath = [
+            "programs"
+            "yazi"
+            "shellWrapperName"
+          ];
+          legacy.value = "yy";
+          current.value = "y";
+        })
+        default
+        defaultText
+        ;
       description = ''
         Name of the shell wrapper to be called.
       '';
@@ -79,7 +78,7 @@ in
     enableZshIntegration = lib.hm.shell.mkZshIntegrationOption { inherit config; };
 
     keymap = mkOption {
-      type = tomlFormat.type;
+      inherit (tomlFormat) type;
       default = { };
       example = literalExpression ''
         {
@@ -106,7 +105,7 @@ in
     };
 
     settings = mkOption {
-      type = tomlFormat.type;
+      inherit (tomlFormat) type;
       default = { };
       example = literalExpression ''
         {
@@ -131,7 +130,7 @@ in
     };
 
     theme = mkOption {
-      type = tomlFormat.type;
+      inherit (tomlFormat) type;
       default = { };
       example = literalExpression ''
         {
@@ -150,6 +149,30 @@ in
         {file}`$XDG_CONFIG_HOME/yazi/theme.toml`.
 
         See <https://yazi-rs.github.io/docs/configuration/theme>
+        for the full list of options
+      '';
+    };
+
+    vfs = mkOption {
+      inherit (tomlFormat) type;
+      default = { };
+      example = literalExpression ''
+        {
+          services = {
+            my-server = {
+              host = "1.2.3.4";
+              port = 22;
+              type = "sftp";
+              user = "root";
+            };
+          };
+        }
+      '';
+      description = ''
+        Configuration written to
+        {file}`$XDG_CONFIG_HOME/yazi/vfs.toml`.
+
+        See <https://yazi-rs.github.io/docs/configuration/vfs>
         for the full list of options
       '';
     };
@@ -283,6 +306,9 @@ in
       };
       "yazi/theme.toml" = mkIf (cfg.theme != { }) {
         source = tomlFormat.generate "yazi-theme" cfg.theme;
+      };
+      "yazi/vfs.toml" = mkIf (cfg.vfs != { }) {
+        source = tomlFormat.generate "yazi-vfs" cfg.vfs;
       };
       "yazi/init.lua" = mkIf (cfg.initLua != null) (
         if builtins.isPath cfg.initLua then

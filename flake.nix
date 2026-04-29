@@ -63,8 +63,7 @@
             # Create chunked test packages for better CI parallelization
             tests = import ./tests {
               inherit pkgs;
-              # Disable big tests since this is only used for CI
-              enableBig = false;
+              enableBig = true;
             };
             allTests = lib.attrNames tests.build;
             # Remove 'all' from the test list as it's a meta-package
@@ -189,11 +188,21 @@
             default = hmPkg;
             home-manager = hmPkg;
 
+            ci-parse = pkgs.callPackage ./ci/parse.nix { nix = pkgs.nixVersions.latest; };
+            ci-parse-lix = pkgs.callPackage ./ci/parse.nix {
+              nix = pkgs.lixPackageSets.latest.lix;
+            };
+
             create-news-entry = pkgs.writeShellScriptBin "create-news-entry" ''
               ./modules/misc/news/create-news-entry.sh
             '';
 
-            tests = pkgs.callPackage ./tests/package.nix { flake = self; };
+            tests = pkgs.callPackage ./tests/package.nix {
+              flake = self;
+              inputOverrides = {
+                inherit nixpkgs;
+              };
+            };
 
             docs-html = docs.manual.html;
             docs-htmlOpenTool = docs.manual.htmlOpenTool;
@@ -210,7 +219,7 @@
         legacyPackages = forAllPkgs (
           pkgs:
           let
-            system = pkgs.stdenv.hostPlatform.system;
+            inherit (pkgs.stdenv.hostPlatform) system;
           in
           (buildTests system)
           // (integrationTestPackages system)

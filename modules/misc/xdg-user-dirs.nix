@@ -76,6 +76,13 @@ in
       description = "The Pictures directory.";
     };
 
+    projects = mkOption {
+      type = with types; nullOr (coercedTo path toString str);
+      default = "${config.home.homeDirectory}/Projects";
+      defaultText = literalExpression ''"''${config.home.homeDirectory}/Projects"'';
+      description = "The Projects directory.";
+    };
+
     publicShare = mkOption {
       type = with types; nullOr (coercedTo path toString str);
       default = "${config.home.homeDirectory}/Public";
@@ -136,10 +143,21 @@ in
 
     setSessionVariables = mkOption {
       type = with types; bool;
-      default = lib.versionOlder config.home.stateVersion "26.05";
-      defaultText = literalExpression ''
-        lib.versionOlder config.home.stateVersion "26.05"
-      '';
+      inherit
+        (lib.hm.deprecations.mkStateVersionOptionDefault {
+          inherit (config.home) stateVersion;
+          since = "26.05";
+          optionPath = [
+            "xdg"
+            "userDirs"
+            "setSessionVariables"
+          ];
+          legacy.value = true;
+          current.value = false;
+        })
+        default
+        defaultText
+        ;
       description = ''
         Whether to set the XDG user dir environment variables, like
         `XDG_DESKTOP_DIR`.
@@ -158,12 +176,13 @@ in
   config =
     let
       directories =
-        (lib.filterAttrs (n: v: !isNull v) {
+        (lib.filterAttrs (_n: v: !isNull v) {
           DESKTOP = cfg.desktop;
           DOCUMENTS = cfg.documents;
           DOWNLOAD = cfg.download;
           MUSIC = cfg.music;
           PICTURES = cfg.pictures;
+          PROJECTS = cfg.projects;
           PUBLICSHARE = cfg.publicShare;
           TEMPLATES = cfg.templates;
           VIDEOS = cfg.videos;

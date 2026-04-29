@@ -217,7 +217,8 @@ let
         description = ''
           The marker indicates the position of the cursor when the abbreviation
           is expanded. When setCursor is true, the marker is set with a default
-          value of "%".
+          value of "%". This Nix option maps to fish's
+          {command}`abbr --set-cursor` flag in the generated configuration.
         '';
       };
 
@@ -235,6 +236,14 @@ let
     { config, ... }:
     {
       options = {
+        name = mkOption {
+          type = with types; nullOr str;
+          default = null;
+          description = ''
+            The key name that is used for the bind.
+            If null, the attribute set key is used.
+          '';
+        };
         enable = mkEnableOption "enable the bind. Set false if you want to ignore the bind" // {
           default = true;
         };
@@ -242,11 +251,13 @@ let
           description = "Specify the bind mode that the bind is used in";
           type =
             with types;
-            nullOr (enum [
-              "default"
-              "insert"
-              "paste"
-            ]);
+            nullOr (
+              either (enum [
+                "default"
+                "insert"
+                "paste"
+              ]) str
+            );
           default = null;
         };
         command = mkOption {
@@ -271,11 +282,13 @@ let
           description = "Change current mode after bind is executed";
           type =
             with types;
-            nullOr (enum [
-              "default"
-              "insert"
-              "paste"
-            ]);
+            nullOr (
+              either (enum [
+                "default"
+                "insert"
+                "paste"
+              ]) str
+            );
           default = null;
         };
         erase = mkEnableOption "remove bind";
@@ -336,6 +349,7 @@ let
       lib.mapAttrsToList (
         k:
         {
+          name,
           silent,
           erase,
           repaint,
@@ -346,6 +360,7 @@ let
           ...
         }:
         let
+          key = if name != null then name else k;
           opts =
             lib.optionals silent [ "-s" ]
             ++ lib.optionals (!isNull operate) [ "--${operate}" ]
@@ -361,7 +376,7 @@ let
           cmdNormal = lib.concatStringsSep " " (
             [ "bind" ]
             ++ opts
-            ++ [ k ]
+            ++ [ key ]
             ++ map lib.escapeShellArg (lib.flatten [ command ])
             ++ lib.optional repaint "repaint"
           );
@@ -372,7 +387,7 @@ let
               "-e"
             ]
             ++ opts
-            ++ [ k ]
+            ++ [ key ]
           );
         in
         lib.optionals erase [ cmdErase ] ++ lib.optionals (!isNull command) [ cmdNormal ]
@@ -406,9 +421,9 @@ let
         "onSignal"
         "onEvent"
       ];
-      isHandler = name: def: isAttrs def && builtins.any (attr: builtins.hasAttr attr def) handlerAttrs;
+      isHandler = _name: def: isAttrs def && builtins.any (attr: builtins.hasAttr attr def) handlerAttrs;
       handlerFunctions = lib.filterAttrs isHandler cfg.functions;
-      sourceFunction = name: def: "source ${config.xdg.configHome}/fish/functions/${name}.fish";
+      sourceFunction = name: _def: "source ${config.xdg.configHome}/fish/functions/${name}.fish";
     in
     builtins.concatStringsSep "\n" (lib.mapAttrsToList sourceFunction handlerFunctions);
 

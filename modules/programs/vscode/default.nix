@@ -17,8 +17,8 @@ let
 
   cfg = config.programs.vscode;
 
-  vscodePname = cfg.package.pname;
-  vscodeVersion = cfg.package.version;
+  vscodePname = cfg.package.pname or cfg.pname;
+  vscodeVersion = cfg.package.version or pkgs.vscode.version;
 
   jsonFormat = pkgs.formats.json { };
 
@@ -129,10 +129,10 @@ let
     name: server:
     let
       # Remove the disabled field from the server config
-      cleanServer = lib.filterAttrs (n: v: n != "disabled") server;
+      cleanServer = lib.filterAttrs (n: _v: n != "disabled") server;
     in
     {
-      name = name;
+      inherit name;
       value = {
         enabled = !(server.disabled or false);
       }
@@ -289,7 +289,7 @@ let
       };
 
       languageSnippets = mkOption {
-        type = jsonFormat.type;
+        inherit (jsonFormat) type;
         default = { };
         example = {
           haskell = {
@@ -304,7 +304,7 @@ let
       };
 
       globalSnippets = mkOption {
-        type = jsonFormat.type;
+        inherit (jsonFormat) type;
         default = { };
         example = {
           fixme = {
@@ -337,7 +337,7 @@ let
       };
     };
   };
-  defaultProfile = if cfg.profiles ? default then cfg.profiles.default else { };
+  defaultProfile = cfg.profiles.default or { };
   allProfilesExceptDefault = removeAttrs cfg.profiles [ "default" ];
 in
 {
@@ -383,8 +383,23 @@ in
     enable = lib.mkEnableOption "Visual Studio Code";
 
     package = lib.mkPackageOption pkgs "vscode" {
+      nullable = true;
       example = "pkgs.vscodium";
       extraDescription = "Version of Visual Studio Code to install.";
+    };
+
+    pname = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      example = "vscode";
+      description = ''
+        The package name (pname) of the VS Code variant being used.
+        Required when {option}`programs.vscode.package` is set to
+        `null`, so that {option}`programs.vscode.nameShort` and
+        {option}`programs.vscode.dataFolderName` can be derived from
+        known products. Has no effect when
+        {option}`programs.vscode.package` is set.
+      '';
     };
 
     mutableExtensionsDir = mkOption {
@@ -449,6 +464,13 @@ in
   };
 
   config = mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = cfg.package != null || cfg.pname != null;
+        message = "programs.vscode.pname must be set when programs.vscode.package is null.";
+      }
+    ];
+
     warnings = [
       (mkIf (allProfilesExceptDefault != { } && cfg.mutableExtensionsDir)
         "programs.vscode.mutableExtensionsDir can be used only if no profiles apart from default are set."
@@ -456,7 +478,7 @@ in
       (mkIf
         (
           (lib.filterAttrs (
-            n: v:
+            _n: v:
             (v ? enableExtensionUpdateCheck || v ? enableUpdateCheck)
             && (v.enableExtensionUpdateCheck != null || v.enableUpdateCheck != null)
           ) allProfilesExceptDefault) != { }
@@ -465,7 +487,7 @@ in
       )
     ];
 
-    home.packages = [ cfg.package ];
+    home.packages = lib.mkIf (cfg.package != null) [ cfg.package ];
 
     # The file `${userDir}/globalStorage/storage.json` needs to be writable by VSCode,
     # since it contains other data, such as theme backgrounds, recently opened folders, etc.
@@ -479,7 +501,7 @@ in
           PATH=${lib.makeBinPath [ pkgs.jq ]}''${PATH:+:}$PATH
           file="${userDir}/globalStorage/storage.json"
           file_write=""
-          profiles=(${lib.escapeShellArgs (flatten (mapAttrsToList (n: v: n) allProfilesExceptDefault))})
+          profiles=(${lib.escapeShellArgs (flatten (mapAttrsToList (n: _v: n) allProfilesExceptDefault))})
 
           if [ -f "$file" ]; then
             existing_profiles=$(jq '.userDataProfiles // [] | map({ (.name): .location }) | add // {}' "$file")
@@ -613,7 +635,7 @@ in
           # causes VSCode to create the extensions.json with all the extensions
           # in the extension directory, which includes extensions from other profiles.
           lib.mkMerge (
-            lib.concatMap toPaths (flatten (mapAttrsToList (n: v: v.extensions) cfg.profiles))
+            lib.concatMap toPaths (flatten (mapAttrsToList (_n: v: v.extensions) cfg.profiles))
             ++
               lib.optional
                 (
@@ -625,6 +647,7 @@ in
                     ]
                   )
                   && defaultProfile != { }
+                  && cfg.package != null
                 )
                 {
                   # Whenever our immutable extensions.json changes, force VSCode to regenerate
@@ -646,7 +669,7 @@ in
                 combinedExtensionsDrv = pkgs.buildEnv {
                   name = "vscode-extensions";
                   paths =
-                    (flatten (mapAttrsToList (n: v: v.extensions) cfg.profiles))
+                    (flatten (mapAttrsToList (_n: v: v.extensions) cfg.profiles))
                     ++ lib.optional (
                       (
                         lib.versionAtLeast vscodeVersion "1.74.0"

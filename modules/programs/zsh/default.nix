@@ -24,7 +24,8 @@ let
     vicmd = "bindkey -a";
   };
 
-  inherit (import ./lib.nix { inherit config lib; }) homeDir dotDirAbs dotDirRel;
+  zshLib = import ./lib.nix { inherit config lib; };
+  inherit (zshLib) homeDir dotDirAbs dotDirRel;
 in
 {
   meta.maintainers = [ lib.maintainers.khaneliman ];
@@ -246,11 +247,25 @@ in
 
         sessionVariables = mkOption {
           default = { };
-          type = types.attrs;
+          type =
+            with types;
+            lazyAttrsOf (
+              nullOr (oneOf [
+                str
+                path
+                int
+                float
+              ])
+            );
           example = {
             MAILCHECK = 30;
           };
-          description = "Environment variables that will be set for zsh session.";
+          description = ''
+            Environment variables that will be set for zsh session.
+
+            Setting a value to `null` will skip setting the variable at all, which
+            may be useful when overriding.
+          '';
         };
 
         initContent = mkOption {
@@ -478,6 +493,8 @@ in
         }
 
         {
+          lib.zsh = zshLib;
+
           home.packages = [
             cfg.package
           ]
