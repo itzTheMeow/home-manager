@@ -78,7 +78,7 @@ in
     enableZshIntegration = lib.hm.shell.mkZshIntegrationOption { inherit config; };
 
     keymap = mkOption {
-      type = tomlFormat.type;
+      inherit (tomlFormat) type;
       default = { };
       example = literalExpression ''
         {
@@ -105,7 +105,7 @@ in
     };
 
     settings = mkOption {
-      type = tomlFormat.type;
+      inherit (tomlFormat) type;
       default = { };
       example = literalExpression ''
         {
@@ -130,7 +130,7 @@ in
     };
 
     theme = mkOption {
-      type = tomlFormat.type;
+      inherit (tomlFormat) type;
       default = { };
       example = literalExpression ''
         {
@@ -149,6 +149,30 @@ in
         {file}`$XDG_CONFIG_HOME/yazi/theme.toml`.
 
         See <https://yazi-rs.github.io/docs/configuration/theme>
+        for the full list of options
+      '';
+    };
+
+    vfs = mkOption {
+      inherit (tomlFormat) type;
+      default = { };
+      example = literalExpression ''
+        {
+          services = {
+            my-server = {
+              host = "1.2.3.4";
+              port = 22;
+              type = "sftp";
+              user = "root";
+            };
+          };
+        }
+      '';
+      description = ''
+        Configuration written to
+        {file}`$XDG_CONFIG_HOME/yazi/vfs.toml`.
+
+        See <https://yazi-rs.github.io/docs/configuration/vfs>
         for the full list of options
       '';
     };
@@ -282,6 +306,9 @@ in
       };
       "yazi/theme.toml" = mkIf (cfg.theme != { }) {
         source = tomlFormat.generate "yazi-theme" cfg.theme;
+      };
+      "yazi/vfs.toml" = mkIf (cfg.vfs != { }) {
+        source = tomlFormat.generate "yazi-vfs" cfg.vfs;
       };
       "yazi/init.lua" = mkIf (cfg.initLua != null) (
         if builtins.isPath cfg.initLua then

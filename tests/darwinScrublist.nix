@@ -5,6 +5,7 @@ let
   # Packages are scrubbed on Linux and expected in test output
   packagesToScrub = [
     # keep-sorted start case=no numeric=yes
+    "abook"
     "aerc"
     "aerospace"
     "aichat"
@@ -16,12 +17,15 @@ let
     "aria2"
     "atuin"
     "autojump"
+    "autorandr"
+    "awscli2"
     "bacon"
     "bash"
     "bash-completion"
     "bash-preexec"
     "bashInteractive"
     "bat"
+    "beets"
     "borgmatic"
     "bottom"
     "broot"
@@ -30,6 +34,7 @@ let
     "calibre"
     "carapace"
     "cava"
+    "chromium"
     "claude-code"
     "clock-rs"
     "cmus"
@@ -51,6 +56,7 @@ let
     "fastfetch"
     "feh"
     "flameshot"
+    "freetube"
     "fzf"
     "gallery-dl"
     "getconf"
@@ -65,8 +71,12 @@ let
     "gitMinimal"
     "gnupg"
     "go"
+    "google-chrome"
+    "google-chrome-beta"
+    "google-chrome-dev"
     "gradle"
     "granted"
+    "halloy"
     "helix"
     "hello"
     "himalaya"
@@ -151,6 +161,7 @@ let
     "radio-cli"
     "ranger"
     "retext"
+    "retroarch-bare"
     "rio"
     "ripgrep"
     "ruff"
@@ -167,6 +178,7 @@ let
     "spotify-player"
     "starship"
     "superfile"
+    "sway-easyfocus"
     "taskwarrior2"
     "tealdeer"
     "texlive"
@@ -177,6 +189,7 @@ let
     "topgrade"
     "translate-shell"
     "tray-tui"
+    "vesktop"
     "vifm"
     "vim-vint"
     "vimPlugins"
@@ -201,7 +214,7 @@ let
 
   # Create an overlay that scrubs packages in the scrublist
   packageScrubOverlay =
-    self: super:
+    _self: super:
     lib.mapAttrs (
       name: value:
       if lib.elem name packagesToScrub then

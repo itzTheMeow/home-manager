@@ -11,6 +11,13 @@ in
   programs.codex = {
     enable = true;
     package = codexPackage;
+    rules.default = ''
+      prefix_rule(
+        pattern = ["nix", "build"],
+        decision = "allow",
+        justification = "Allow local builds",
+      )
+    '';
     settings = {
       model = "gemma3:latest";
       model_provider = "ollama";
@@ -22,7 +29,7 @@ in
         };
       };
     };
-    custom-instructions = ''
+    context = ''
       - Always respond with emojis
       - Only use git commands when explicitly requested
     '';
@@ -36,5 +43,14 @@ in
     assertFileExists home-files/.config/codex/AGENTS.md
     assertFileContent home-files/.config/codex/AGENTS.md \
       ${./AGENTS.md}
+    assertFileExists home-files/.config/codex/rules/default.rules
+    assertFileContent home-files/.config/codex/rules/default.rules \
+      ${builtins.toFile "expected-xdg-default.rules" ''
+        prefix_rule(
+          pattern = ["nix", "build"],
+          decision = "allow",
+          justification = "Allow local builds",
+        )
+      ''}
   '';
 }

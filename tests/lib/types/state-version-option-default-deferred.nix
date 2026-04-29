@@ -63,11 +63,23 @@ let
       expectedWarn = true;
       expectedPriority = false;
     };
+    equalValues = {
+      default = mkDeferredDefault "equalValues" {
+        legacy.value = {
+          FOO = "same";
+        };
+        current.value = {
+          FOO = "same";
+        };
+      };
+      expectedWarn = false;
+      expectedPriority = false;
+    };
   };
 in
 {
   options.test.values = lib.mapAttrs (
-    name: case:
+    _name: case:
     lib.mkOption {
       type = attrSetOfString;
       default = { };
@@ -111,15 +123,16 @@ in
         };
         priorityOnlyExplicit.BAR = "explicit";
         partial.BAR = "partial";
+        equalValues = { };
       };
 
       asserts.warnings.expected = lib.flatten (
-        lib.mapAttrsToList (name: case: lib.optional case.expectedWarn case.default.warning) cases
+        lib.mapAttrsToList (_name: case: lib.optional case.expectedWarn case.default.warning) cases
       );
     };
 
     warnings = lib.flatten (
-      lib.mapAttrsToList (name: case: lib.optional case.default.shouldWarn case.default.warning) cases
+      lib.mapAttrsToList (_name: case: lib.optional case.default.shouldWarn case.default.warning) cases
     );
 
     home.file."result.txt".text = ''
@@ -140,6 +153,9 @@ in
       }
       partialFoo=${(effectiveValue cases.partial.default config.test.values.partial).FOO or ""}
       partialBar=${(effectiveValue cases.partial.default config.test.values.partial).BAR or ""}
+      equalValuesFoo=${
+        (effectiveValue cases.equalValues.default config.test.values.equalValues).FOO or ""
+      }
     '';
 
     nmt.script = ''
@@ -151,6 +167,7 @@ in
         priorityOnlyExplicitBar=explicit
         partialFoo=legacy
         partialBar=partial
+        equalValuesFoo=
       ''}
     '';
   };

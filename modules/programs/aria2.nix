@@ -26,7 +26,7 @@ in
     package = lib.mkPackageOption pkgs "aria2" { nullable = true; };
 
     settings = lib.mkOption {
-      type = keyValueFormat.type;
+      inherit (keyValueFormat) type;
       default = { };
       description = ''
         Options to add to {file}`aria2.conf` file.
@@ -44,6 +44,8 @@ in
         }
       '';
     };
+
+    systemd.enable = lib.mkEnableOption "Aria2 systemd integration";
   };
 
   config = lib.mkIf cfg.enable {
@@ -51,6 +53,23 @@ in
 
     xdg.configFile."aria2/aria2.conf" = lib.mkIf (cfg.settings != { }) {
       source = keyValueFormat.generate "aria2.conf" cfg.settings;
+    };
+
+    systemd.user.services.aria2 = lib.mkIf cfg.systemd.enable {
+      Unit = {
+        Description = "Aria2c daemon";
+        Documentation = "man:aria2c(1)";
+        X-Restart-Triggers = lib.mkIf (cfg.settings != { }) [
+          "${config.xdg.configFile."aria2/aria2.conf".source}"
+        ];
+      };
+
+      Service = {
+        ExecStart = "${lib.getExe cfg.package} --enable-rpc";
+        Restart = "on-failure";
+      };
+
+      Install.WantedBy = [ "default.target" ];
     };
   };
 }

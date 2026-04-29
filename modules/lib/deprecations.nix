@@ -193,6 +193,7 @@
       optionUsesDefaultPriority = canDeferWarning && optionInfo.highestPrio >= warningPriority;
 
       usingLegacyBranch = lib.versionOlder stateVersion since;
+      valuesEqual = legacy.value == current.value;
     in
     assert lib.assertMsg (!deferWarningToConfig || canDeferWarning) ''
       `lib.hm.deprecations.mkStateVersionOptionDefault` requires both `config` and `options`
@@ -200,7 +201,10 @@
     '';
     {
       default =
-        if usingLegacyBranch && !deferWarningToConfig then lib.warn warning legacy.value else current.value;
+        if usingLegacyBranch && !deferWarningToConfig && !valuesEqual then
+          lib.warn warning legacy.value
+        else
+          current.value;
       defaultText = lib.literalExpression ''
         if lib.versionAtLeast config.home.stateVersion "${since}" then ${currentText} else ${legacyText}
       '';
@@ -209,6 +213,7 @@
       shouldWarn =
         deferWarningToConfig
         && usingLegacyBranch
+        && !valuesEqual
         && (
           if lib.isFunction shouldWarn then
             shouldWarn { inherit optionInfo optionUsesDefaultPriority; }
@@ -216,4 +221,94 @@
             optionUsesDefaultPriority
         );
     };
+
+  /*
+    Builds a predicate for list-entry warnings where an omitted field should
+    trigger only when another field is present with a meaningful value.
+
+    Example:
+      shouldWarnEntry = lib.hm.deprecations.mkListEntryOmittedFieldPredicate {
+        omittedField = "type";
+        triggerField = "config";
+      };
+  */
+  mkListEntryOmittedFieldPredicate =
+    {
+      omittedField,
+      triggerField,
+      triggerPredicate ? (value: value != null && value != ""),
+    }:
+    entry:
+    builtins.isAttrs entry.value
+    && builtins.hasAttr triggerField entry.value
+    && triggerPredicate (builtins.getAttr triggerField entry.value)
+    && !(builtins.hasAttr omittedField entry.value);
+
+  /*
+    Builds state-version migration warnings for entries in a list option whose
+    items are typically submodules or attrsets.
+
+    This is intended for cases where a field inside each entry has a
+    state-version-dependent default, but warning from that field's option
+    default is too noisy. The caller supplies a predicate that determines
+    whether a raw entry relies on the legacy implicit behavior.
+
+    Example:
+      let
+        stateVersionDefault = lib.hm.deprecations.mkStateVersionOptionDefault {
+          inherit (config.home) stateVersion;
+          since = "26.05";
+          optionPath = [ "programs" "example" "entries" "ENTRY" "mode" ];
+          legacy.value = "old";
+          current.value = "new";
+        };
+      in
+      lib.hm.deprecations.mkStateVersionListSubmoduleWarnings {
+        inherit (config.home) stateVersion;
+        since = "26.05";
+        baseWarning = stateVersionDefault.warning;
+        definitions = options.programs.example.entries.definitionsWithLocations;
+        shouldWarnEntry = entry:
+          builtins.isAttrs entry.value
+          && entry.value ? config
+          && entry.value.config != null
+          && !(entry.value ? mode);
+        describeEntry = entry: "entry `${entry.value.name}`";
+      };
+  */
+  mkStateVersionListSubmoduleWarnings =
+    {
+      stateVersion,
+      since,
+      baseWarning,
+      definitions,
+      shouldWarnEntry,
+      describeEntry ? (_entry: "an entry"),
+      extraEntryWarning ? (_entry: ""),
+    }:
+    let
+      flattenedDefinitions = lib.concatMap (
+        definition:
+        lib.imap1 (index: value: {
+          inherit index value;
+          file = baseNameOf (toString definition.file);
+        }) definition.value
+      ) definitions;
+
+      formatEntryWarning =
+        entry:
+        let
+          entryWarning = extraEntryWarning entry;
+        in
+        lib.concatStringsSep "\n" (
+          [
+            (lib.removeSuffix "\n" baseWarning)
+            "Triggered by ${describeEntry entry} defined in `${entry.file}` at list index ${toString entry.index}."
+          ]
+          ++ lib.optional (entryWarning != "") entryWarning
+        );
+    in
+    lib.optionals (lib.versionOlder stateVersion since) (
+      map formatEntryWarning (builtins.filter shouldWarnEntry flattenedDefinitions)
+    );
 }

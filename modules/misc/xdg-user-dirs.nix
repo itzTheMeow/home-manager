@@ -76,6 +76,13 @@ in
       description = "The Pictures directory.";
     };
 
+    projects = mkOption {
+      type = with types; nullOr (coercedTo path toString str);
+      default = "${config.home.homeDirectory}/Projects";
+      defaultText = literalExpression ''"''${config.home.homeDirectory}/Projects"'';
+      description = "The Projects directory.";
+    };
+
     publicShare = mkOption {
       type = with types; nullOr (coercedTo path toString str);
       default = "${config.home.homeDirectory}/Public";
@@ -169,12 +176,13 @@ in
   config =
     let
       directories =
-        (lib.filterAttrs (n: v: !isNull v) {
+        (lib.filterAttrs (_n: v: !isNull v) {
           DESKTOP = cfg.desktop;
           DOCUMENTS = cfg.documents;
           DOWNLOAD = cfg.download;
           MUSIC = cfg.music;
           PICTURES = cfg.pictures;
+          PROJECTS = cfg.projects;
           PUBLICSHARE = cfg.publicShare;
           TEMPLATES = cfg.templates;
           VIDEOS = cfg.videos;

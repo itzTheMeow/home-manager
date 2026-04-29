@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   pkgs,
   ...
 }:
@@ -30,6 +31,20 @@ let
 
   inherit (pkgs) neovimUtils;
   jsonFormat = pkgs.formats.json { };
+
+  pluginTypeStateVersion = lib.hm.deprecations.mkStateVersionOptionDefault {
+    inherit (config.home) stateVersion;
+    since = "26.05";
+    optionPath = [
+      "programs"
+      "neovim"
+      "plugins"
+      "PLUGIN"
+      "type"
+    ];
+    legacy.value = "viml";
+    current.value = "lua";
+  };
 in
 {
   meta.maintainers = with lib.maintainers; [ khaneliman ];
@@ -109,7 +124,21 @@ in
 
       withPython3 = mkOption {
         type = types.bool;
-        default = true;
+        inherit
+          (lib.hm.deprecations.mkStateVersionOptionDefault {
+            inherit (config.home) stateVersion;
+            since = "26.05";
+            optionPath = [
+              "programs"
+              "neovim"
+              "withPython3"
+            ];
+            legacy.value = true;
+            current.value = false;
+          })
+          default
+          defaultText
+          ;
         description = ''
           Enable Python 3 provider. Set to `true` to
           use Python 3 plugins.
@@ -117,8 +146,22 @@ in
       };
 
       withRuby = mkOption {
-        type = types.nullOr types.bool;
-        default = false;
+        type = types.bool;
+        inherit
+          (lib.hm.deprecations.mkStateVersionOptionDefault {
+            inherit (config.home) stateVersion;
+            since = "26.05";
+            optionPath = [
+              "programs"
+              "neovim"
+              "withRuby"
+            ];
+            legacy.value = true;
+            current.value = false;
+          })
+          default
+          defaultText
+          ;
         description = ''
           Enable ruby provider.
         '';
@@ -217,6 +260,19 @@ in
         '';
       };
 
+      sideloadInitLua = mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          Enable to avoid writing the content of {var}`initLua` to the default
+          location {file}`$XDG_CONFIG_HOME/nvim/init.lua` and load it through
+          neovim wrapper arguments instead.
+
+
+          This is useful if you want to manage your own {file}`init.lua` imperatively.
+        '';
+      };
+
       initLua = mkOption {
         type = types.lines;
         default = "";
@@ -254,7 +310,8 @@ in
                   "fennel"
                 ]) types.str;
                 description = "Language used in config. Configurations are aggregated per-language.";
-                default = "viml";
+                default = pluginTypeStateVersion.effectiveDefault;
+                inherit (pluginTypeStateVersion) defaultText;
               };
 
               optional = mkEnableOption "optional" // {
@@ -391,6 +448,26 @@ in
 
   config = mkIf cfg.enable (
     let
+      legacyPluginTypeWarnings = lib.hm.deprecations.mkStateVersionListSubmoduleWarnings {
+        inherit (config.home) stateVersion;
+        since = "26.05";
+        baseWarning = pluginTypeStateVersion.warning;
+        definitions = options.programs.neovim.plugins.definitionsWithLocations;
+        shouldWarnEntry = lib.hm.deprecations.mkListEntryOmittedFieldPredicate {
+          omittedField = "type";
+          triggerField = "config";
+        };
+        describeEntry =
+          entry:
+          if entry.value ? plugin && entry.value.plugin != null then
+            "plugin `${lib.getName entry.value.plugin}`"
+          else
+            "a plugin entry";
+        extraEntryWarning =
+          _entry:
+          ''Set `type = "viml"` or `type = "lua"` on that plugin entry to make the config language explicit.'';
+      };
+
       allPlugins =
         cfg.plugins
         ++ lib.optional cfg.coc.enable {
@@ -401,7 +478,7 @@ in
         };
 
       defaultPlugin = {
-        type = "viml";
+        type = pluginTypeStateVersion.effectiveDefault;
         plugin = null;
         config = null;
         optional = false;
@@ -417,7 +494,7 @@ in
       suppressIncompatibleConfig =
         p:
         lib.filterAttrs (
-          n: v:
+          n: _v:
           builtins.elem n [
             "plugin"
             "optional"
@@ -433,39 +510,44 @@ in
         (lib.makeBinPath cfg.extraPackages)
       ];
 
-      vimPackageInfo = neovimUtils.makeVimPackageInfo (map suppressIncompatibleConfig pluginsNormalized);
+      nixpkgsCompatiblePlugins = map suppressIncompatibleConfig pluginsNormalized;
+      vimPackageInfo = neovimUtils.makeVimPackageInfo nixpkgsCompatiblePlugins;
 
-      wrappedNeovim' = pkgs.wrapNeovimUnstable cfg.package {
-        withNodeJs = cfg.withNodeJs || cfg.coc.enable;
-        plugins = [ ];
+      wrappedNeovim' =
+        (pkgs.wrapNeovimUnstable cfg.package {
+          withNodeJs = cfg.withNodeJs || cfg.coc.enable;
+          plugins = nixpkgsCompatiblePlugins;
 
-        extraLuaPackages = lp: cfg.extraLuaPackages lp ++ vimPackageInfo.luaDependencies;
-        inherit (cfg)
-          extraName
-          withPython3
-          withRuby
-          withPerl
-          viAlias
-          vimAlias
-          autowrapRuntimeDeps
-          waylandSupport
-          ;
+          inherit (cfg)
+            extraLuaPackages
+            extraName
+            withPython3
+            withRuby
+            withPerl
+            viAlias
+            vimAlias
+            autowrapRuntimeDeps
+            waylandSupport
+            ;
 
-        extraPython3Packages =
-          ps: (cfg.extraPython3Packages ps) ++ (lib.concatMap (f: f ps) vimPackageInfo.pluginPython3Packages);
-        neovimRcContent = cfg.extraConfig;
-        wrapperArgs = cfg.extraWrapperArgs ++ extraMakeWrapperArgs;
-        wrapRc = false;
-      };
+          extraPython3Packages =
+            ps: (cfg.extraPython3Packages ps) ++ (lib.concatMap (f: f ps) vimPackageInfo.pluginPython3Packages);
+          neovimRcContent = cfg.extraConfig;
+          wrapperArgs = cfg.extraWrapperArgs ++ extraMakeWrapperArgs;
+          wrapRc = false;
+        }).overrideAttrs
+          {
 
-      # This is a hack to avoid breaking config for users that dont want an init.lua to get generated
-      # See https://github.com/nix-community/home-manager/pull/8734
-      # we basically check if the generated wrapper lua config has any user-set config
-      # if not HM avoids creating an init.lua
-      # this makes the logic harder to understand and maintain so hopefully we can find a way out
-      wrapperHasUserConfig = wrappedNeovim'.luaRcContent != wrappedNeovim'.providerLuaRc;
+            # nixpkgs implementation dependend: avoid nixpkgs adding rtp/packpath wrapping arguments
+            packpathDirs.myNeovimPackages = {
+              start = [ ];
+              opt = [ ];
+            };
+          };
     in
     {
+      warnings = legacyPluginTypeWarnings;
+
       programs.neovim = {
         generatedConfigViml = cfg.extraConfig;
 
@@ -490,12 +572,11 @@ in
         shellAliases = mkIf cfg.vimdiffAlias { vimdiff = "nvim -d"; };
       };
 
-      programs.neovim.extraConfig = lib.concatStringsSep "\n" vimPackageInfo.userPluginViml;
       programs.neovim.extraPackages = mkIf cfg.autowrapRuntimeDeps vimPackageInfo.runtimeDeps;
 
-      programs.neovim.extraWrapperArgs = mkIf (!wrapperHasUserConfig) [
+      programs.neovim.extraWrapperArgs = mkIf (cfg.sideloadInitLua && cfg.initLua != "") [
         "--add-flags"
-        ''--cmd 'lua dofile("${pkgs.writeText "wrapper-init-lua" wrappedNeovim'.luaRcContent}")' ''
+        ''--cmd 'lua dofile("${pkgs.writeText "wrapper-init-lua" cfg.initLua}")' ''
       ];
 
       programs.neovim.initLua =
@@ -511,14 +592,9 @@ in
               ''
             else
               null;
-
-          advisedLua = foldedLuaBlock "home-manager generated: plugin config advised in nixpkgs" (
-            lib.concatStringsSep "\n" vimPackageInfo.pluginAdvisedLua
-          );
         in
         lib.mkMerge [
-          (lib.mkIf (advisedLua != null) (lib.mkOrder 510 advisedLua))
-          (lib.mkIf wrapperHasUserConfig (
+          (lib.mkIf (wrappedNeovim'.luaRcContent != "") (
             # we want it to appear rather early
             lib.mkOrder 200 wrappedNeovim'.luaRcContent
           ))
@@ -545,6 +621,7 @@ in
         ++ [
           {
             "nvim/init.lua" = mkIf (cfg.initLua != "") {
+              enable = !cfg.sideloadInitLua;
               text = cfg.initLua;
             };
 

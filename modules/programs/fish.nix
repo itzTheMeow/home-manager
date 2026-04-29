@@ -217,7 +217,8 @@ let
         description = ''
           The marker indicates the position of the cursor when the abbreviation
           is expanded. When setCursor is true, the marker is set with a default
-          value of "%".
+          value of "%". This Nix option maps to fish's
+          {command}`abbr --set-cursor` flag in the generated configuration.
         '';
       };
 
@@ -420,9 +421,9 @@ let
         "onSignal"
         "onEvent"
       ];
-      isHandler = name: def: isAttrs def && builtins.any (attr: builtins.hasAttr attr def) handlerAttrs;
+      isHandler = _name: def: isAttrs def && builtins.any (attr: builtins.hasAttr attr def) handlerAttrs;
       handlerFunctions = lib.filterAttrs isHandler cfg.functions;
-      sourceFunction = name: def: "source ${config.xdg.configHome}/fish/functions/${name}.fish";
+      sourceFunction = name: _def: "source ${config.xdg.configHome}/fish/functions/${name}.fish";
     in
     builtins.concatStringsSep "\n" (lib.mapAttrsToList sourceFunction handlerFunctions);
 
