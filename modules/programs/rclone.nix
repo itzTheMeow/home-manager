@@ -10,6 +10,14 @@ let
   replaceIllegalChars = builtins.replaceStrings [ "/" " " "$" ] [ "." "_" "" ];
   isUsingSecretProvisioner = name: config ? "${name}" && config."${name}".secrets != { };
 
+  # serve protocols that can use `Type=notify` services, this is determined from rclone source code
+  serveProtocolNotifies = [
+    "dlna"
+    "http"
+    "restic"
+    "webdav"
+  ];
+
   # options shared between mounts/serve
   mountServeOptions = {
     logLevel = lib.mkOption {
@@ -88,7 +96,12 @@ let
               };
 
               Service = {
-                Type = "notify";
+                Type =
+                  # all services can be Type=notify except for serve protocols that don't notify
+                  if sidecarType == "serve" && !(builtins.elem sidecar.protocol serveProtocolNotifies) then
+                    "simple"
+                  else
+                    "notify";
                 Environment =
                   # fusermount/fusermount3
                   (lib.optional (sidecarType == "mounts") "PATH=/run/wrappers/bin")
