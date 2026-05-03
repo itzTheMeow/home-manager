@@ -58,7 +58,7 @@ in
       # create files on remote
       succeed_as_alice(
         "mkdir /home/alice/files",
-        "touch /home/alice/files/other_file"
+        "touch /home/alice/files/other_file",
         "echo serving > /home/alice/files/test.txt",
         box=remote
       )
