@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-2d061fa6.js";
+            window.path_to_searchindex_js = "searchindex-705f6646.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-504d7b3f.js"></script>
+        <script src="toc-34290114.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -12027,6 +12027,7 @@ string</p>
 <li><a href="#patdiff">patdiff</a></li>
 <li><a href="#pay-respects">pay-respects</a></li>
 <li><a href="#pazi">pazi</a></li>
+<li><a href="#pegasus-frontend">pegasus-frontend</a></li>
 <li><a href="#pet">pet</a></li>
 <li><a href="#pgcli">pgcli</a></li>
 <li><a href="#pi-coding-agent">pi-coding-agent</a></li>
@@ -46518,6 +46519,373 @@ package</p>
 <p><em>Declared by:</em></p>
 <ul>
 <li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pazi.nix">&lt;home-manager/modules/programs/pazi.nix&gt;</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="pegasus-frontend"><a href="#pegasus-frontend" class="header">pegasus-frontend</a></h1>
+<h2 id="opt-programs.pegasus-frontend.enable"><a class="header" href="#opt-programs.pegasus-frontend.enable">programs.pegasus-frontend.enable</a></h2>
+<p>Whether to enable pegasus-frontend.</p>
+<p><em>Type:</em>
+boolean</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">false
+</code></pre>
+<p><em>Example:</em></p>
+<pre><code class="language-nix">true
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.enableProviders"><a class="header" href="#opt-programs.pegasus-frontend.enableProviders">programs.pegasus-frontend.enableProviders</a></h2>
+<p>List of enabled game providers</p>
+<p><em>Type:</em>
+list of (one of “pegasus_media”, “steam”, “gog”, “es2”, “logiqx”, “lutris”, “skraper”)</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">[
+  "pegasus_media"
+  "steam"
+  "gog"
+  "es2"
+  "logiqx"
+  "lutris"
+  "skraper"
+]
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.package"><a class="header" href="#opt-programs.pegasus-frontend.package">programs.pegasus-frontend.package</a></h2>
+<p>The pegasus-frontend package to use.</p>
+<p><em>Type:</em>
+null or package</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">pkgs.pegasus-frontend
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.collections"><a class="header" href="#opt-programs.pegasus-frontend.collections">programs.pegasus-frontend.collections</a></h2>
+<p>Must also define games. Collections define which files in the directory should be treated as games.
+See https://pegasus-frontend.org/docs/user-guide/meta-files/ for options.</p>
+<p><em>Type:</em>
+attribute set of (open submodule of attribute set of ((string or (absolute path or package or signed integer) convertible to it) or list of (string or (absolute path or package or signed integer) convertible to it)))</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">{ }
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.favorites"><a class="header" href="#opt-programs.pegasus-frontend.favorites">programs.pegasus-frontend.favorites</a></h2>
+<p>List of favorite game identifiers/paths.
+YOU WILL NOT BE ABLE TO MANAGE FAVORITES IN THE UI IF THIS IS SET</p>
+<p><em>Type:</em>
+null or (list of string)</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">null
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.gameDirs"><a class="header" href="#opt-programs.pegasus-frontend.gameDirs">programs.pegasus-frontend.gameDirs</a></h2>
+<p>List of absolute paths to game directories</p>
+<p><em>Type:</em>
+list of string</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">[ ]
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.games"><a class="header" href="#opt-programs.pegasus-frontend.games">programs.pegasus-frontend.games</a></h2>
+<p>Must also define collections. Game entries store additional information about the individual games, such as title, developer(s) or release date.
+See https://pegasus-frontend.org/docs/user-guide/meta-files/ for options.</p>
+<p><em>Type:</em>
+list of (open submodule of attribute set of ((string or (absolute path or package or signed integer) convertible to it) or list of (string or (absolute path or package or signed integer) convertible to it)))</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">[ ]
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.games._.assets"><a class="header" href="#opt-programs.pegasus-frontend.games._.assets">programs.pegasus-frontend.games.*.assets</a></h2>
+<p>File paths to asset files for the game.
+For a list of valid options, see https://pegasus-frontend.org/docs/themes/api/#assets</p>
+<p><em>Type:</em>
+attribute set of ((string or (absolute path or package or signed integer) convertible to it) or list of (string or (absolute path or package or signed integer) convertible to it))</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">{ }
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.games._.collections"><a class="header" href="#opt-programs.pegasus-frontend.games._.collections">programs.pegasus-frontend.games.*.collections</a></h2>
+<p>List of collection names this game belongs to.
+Must have at least one entry to appear in the UI.
+This game will be added to the <code>files</code> of the collection(s) configuration.</p>
+<p><em>Type:</em>
+list of string</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">[ ]
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.games._.favorite"><a class="header" href="#opt-programs.pegasus-frontend.games._.favorite">programs.pegasus-frontend.games.*.favorite</a></h2>
+<p>Whether this game should be marked as a favorite.
+YOU WILL NOT BE ABLE TO MANAGE FAVORITES IN THE UI IF THIS IS SET</p>
+<p><em>Type:</em>
+boolean</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">false
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.games._.files"><a class="header" href="#opt-programs.pegasus-frontend.games._.files">programs.pegasus-frontend.games.*.files</a></h2>
+<p>The file path(s) that belong to this game.</p>
+<p><em>Type:</em>
+list of (string or (absolute path or package or signed integer) convertible to it)</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">[ ]
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.games._.title"><a class="header" href="#opt-programs.pegasus-frontend.games._.title">programs.pegasus-frontend.games.*.title</a></h2>
+<p>The title of the game.</p>
+<p><em>Type:</em>
+string</p>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.keybinds"><a class="header" href="#opt-programs.pegasus-frontend.keybinds">programs.pegasus-frontend.keybinds</a></h2>
+<p>Key bindings for Pegasus controls</p>
+<p><em>Type:</em>
+submodule</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">{ }
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.keybinds.accept"><a class="header" href="#opt-programs.pegasus-frontend.keybinds.accept">programs.pegasus-frontend.keybinds.accept</a></h2>
+<p>Key binding for accept</p>
+<p><em>Type:</em>
+string</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">"Return,Enter,GamepadA"
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.keybinds.cancel"><a class="header" href="#opt-programs.pegasus-frontend.keybinds.cancel">programs.pegasus-frontend.keybinds.cancel</a></h2>
+<p>Key binding for cancel</p>
+<p><em>Type:</em>
+string</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">"Esc,Backspace,GamepadB"
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.keybinds.details"><a class="header" href="#opt-programs.pegasus-frontend.keybinds.details">programs.pegasus-frontend.keybinds.details</a></h2>
+<p>Key binding for details</p>
+<p><em>Type:</em>
+string</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">"I,GamepadX"
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.keybinds.filters"><a class="header" href="#opt-programs.pegasus-frontend.keybinds.filters">programs.pegasus-frontend.keybinds.filters</a></h2>
+<p>Key binding for filters</p>
+<p><em>Type:</em>
+string</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">"F,GamepadY"
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.keybinds.menu"><a class="header" href="#opt-programs.pegasus-frontend.keybinds.menu">programs.pegasus-frontend.keybinds.menu</a></h2>
+<p>Key binding for menu</p>
+<p><em>Type:</em>
+string</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">"F1,GamepadStart"
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.keybinds.next-page"><a class="header" href="#opt-programs.pegasus-frontend.keybinds.next-page">programs.pegasus-frontend.keybinds.next-page</a></h2>
+<p>Key binding for next-page</p>
+<p><em>Type:</em>
+string</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">"E,D,GamepadR1"
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.keybinds.page-down"><a class="header" href="#opt-programs.pegasus-frontend.keybinds.page-down">programs.pegasus-frontend.keybinds.page-down</a></h2>
+<p>Key binding for page-down</p>
+<p><em>Type:</em>
+string</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">"PgDown,GamepadR2"
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.keybinds.page-up"><a class="header" href="#opt-programs.pegasus-frontend.keybinds.page-up">programs.pegasus-frontend.keybinds.page-up</a></h2>
+<p>Key binding for page-up</p>
+<p><em>Type:</em>
+string</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">"PgUp,GamepadL2"
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.keybinds.prev-page"><a class="header" href="#opt-programs.pegasus-frontend.keybinds.prev-page">programs.pegasus-frontend.keybinds.prev-page</a></h2>
+<p>Key binding for prev-page</p>
+<p><em>Type:</em>
+string</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">"Q,A,GamepadL1"
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.settings"><a class="header" href="#opt-programs.pegasus-frontend.settings">programs.pegasus-frontend.settings</a></h2>
+<p>General Pegasus settings</p>
+<p><em>Type:</em>
+submodule</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">{ }
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.settings.extraConfig"><a class="header" href="#opt-programs.pegasus-frontend.settings.extraConfig">programs.pegasus-frontend.settings.extraConfig</a></h2>
+<p>Additional configuration values to be merged into the settings file.</p>
+<p><em>Type:</em>
+attribute set of attribute set of ((string or (absolute path or package or signed integer) convertible to it) or list of (string or (absolute path or package or signed integer) convertible to it))</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">{ }
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.settings.fullscreen"><a class="header" href="#opt-programs.pegasus-frontend.settings.fullscreen">programs.pegasus-frontend.settings.fullscreen</a></h2>
+<p>Start in fullscreen mode</p>
+<p><em>Type:</em>
+boolean</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">true
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.settings.mouseSupport"><a class="header" href="#opt-programs.pegasus-frontend.settings.mouseSupport">programs.pegasus-frontend.settings.mouseSupport</a></h2>
+<p>Enable mouse input support</p>
+<p><em>Type:</em>
+boolean</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">true
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.settings.showMissingGames"><a class="header" href="#opt-programs.pegasus-frontend.settings.showMissingGames">programs.pegasus-frontend.settings.showMissingGames</a></h2>
+<p>Show all detected games, including those that may not exist</p>
+<p><em>Type:</em>
+boolean</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">false
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.settings.verifyFiles"><a class="header" href="#opt-programs.pegasus-frontend.settings.verifyFiles">programs.pegasus-frontend.settings.verifyFiles</a></h2>
+<p>Whether to verify game files on startup</p>
+<p><em>Type:</em>
+boolean</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">true
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.theme"><a class="header" href="#opt-programs.pegasus-frontend.theme">programs.pegasus-frontend.theme</a></h2>
+<p>Pegasus theme configuration</p>
+<p><em>Type:</em>
+null or (submodule)</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">null
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.theme.package"><a class="header" href="#opt-programs.pegasus-frontend.theme.package">programs.pegasus-frontend.theme.package</a></h2>
+<p>The theme package to use</p>
+<p><em>Type:</em>
+package</p>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.theme.name"><a class="header" href="#opt-programs.pegasus-frontend.theme.name">programs.pegasus-frontend.theme.name</a></h2>
+<p>The theme directory name</p>
+<p><em>Type:</em>
+string</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">"theme"
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
+</ul>
+<h2 id="opt-programs.pegasus-frontend.theme.settings"><a class="header" href="#opt-programs.pegasus-frontend.theme.settings">programs.pegasus-frontend.theme.settings</a></h2>
+<p>Theme-specific settings as JSON.
+Will not be managed if not provided, meaning you can change theme settings in the UI.</p>
+<p><em>Type:</em>
+null or JSON value</p>
+<p><em>Default:</em></p>
+<pre><code class="language-nix">null
+</code></pre>
+<p><em>Declared by:</em></p>
+<ul>
+<li><a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/pegasus-frontend.nix">&lt;home-manager/modules/programs/pegasus-frontend.nix&gt;</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="pet"><a href="#pet" class="header">pet</a></h1>
